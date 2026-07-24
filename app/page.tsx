@@ -2,23 +2,31 @@
 import { useState } from "react";
 
 export default function Home() {
-  const [text, setText] = useState("");
+  const [file, setFile] = useState(null);
   const [status, setStatus] = useState("");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
 
   async function handleIngest() {
-    setStatus("Indexing...");
+    if (!file) {
+      setStatus("Please select a PDF file first.");
+      return;
+    }
+
+    setStatus("Uploading and indexing...");
+
+    const formData = new FormData();
+    formData.append("file", file);
+
     const res = await fetch("/api/ingest", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
+      body: formData, // no Content-Type header needed - browser sets it automatically for FormData
     });
     const data = await res.json();
     setStatus(
       data.error
         ? `Error: ${data.error}`
-        : `Indexed ${data.chunksIndexed} chunks successfully!`,
+        : `Indexed "${data.fileName}" - ${data.chunksIndexed} chunks from ${data.extractedLength} characters`,
     );
   }
 
@@ -35,25 +43,25 @@ export default function Home() {
 
   return (
     <main className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">RAG Document Q&A (Test)</h1>
+      <h1 className="text-2xl font-bold mb-4">Chat With Your PDF</h1>
 
-      <textarea
-        className="w-full h-48 border rounded-lg p-3 text-black mb-2"
-        placeholder="Paste some document text here..."
-        value={text}
-        onChange={(e) => setText(e.target.value)}
+      <input
+        type="file"
+        accept=".pdf"
+        onChange={(e) => setFile(e?.target?.files?.[0])}
+        className="mb-2"
       />
       <button
         onClick={handleIngest}
-        className="bg-blue-600 text-white px-4 py-2 rounded-lg mb-2"
+        className="bg-blue-600 text-white px-4 py-2 rounded-lg block mb-2"
       >
-        Index This Text
+        Upload & Index PDF
       </button>
       <p className="mb-6 text-gray-600">{status}</p>
 
       <input
         className="w-full border rounded-lg p-3 text-black mb-2"
-        placeholder="Ask a question about the text above..."
+        placeholder="Ask a question about the PDF..."
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
       />
