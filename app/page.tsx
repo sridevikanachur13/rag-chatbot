@@ -42,6 +42,13 @@ export default function Home() {
     }
   }
 
+  async function handleClear() {
+    await fetch("/api/clear", { method: "POST" });
+    setStatus("All documents cleared.");
+    setAnswer("");
+    setSources([]);
+  }
+
   return (
     <main className="max-w-2xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-4">Chat With Your PDF</h1>
@@ -80,15 +87,31 @@ export default function Home() {
           <h2 className="font-semibold mb-2 text-sm text-gray-500">
             SOURCES USED
           </h2>
-          {sources.map((source) => (
-            <div
-              key={source.id}
-              className="bg-gray-100 rounded-lg p-3 mb-2 text-sm text-gray-700"
-            >
-              <span className="font-medium">Source {source.id}:</span>{" "}
-              {source.text.slice(0, 200)}...
+          {sources.length > 0 && (
+            <div className="border-t pt-4">
+              <h2 className="font-semibold mb-2 text-sm text-gray-500">
+                SOURCES USED
+              </h2>
+              {sources.map((source) => (
+                <div
+                  key={source.id}
+                  className="bg-gray-100 rounded-lg p-3 mb-2 text-sm text-gray-700"
+                >
+                  <span className="font-medium">
+                    Source {source.id} (from {source.fileName}):
+                  </span>{" "}
+                  {source.text.slice(0, 200)}...
+                </div>
+              ))}
             </div>
-          ))}
+          )}
+
+          <button
+            onClick={handleClear}
+            className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm mb-4 ml-2"
+          >
+            Clear All Documents
+          </button>
         </div>
       )}
     </main>

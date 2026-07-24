@@ -40,6 +40,7 @@ Answer:`;
       sources: retrievedDocs.map((doc, i) => ({
         id: i + 1,
         text: doc.pageContent,
+        fileName: doc.metadata?.source || "Unknown",
       })),
     });
   } catch (err) {

@@ -1,7 +1,7 @@
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { MemoryVectorStore } from "@langchain/classic/vectorstores/memory";
-import { setVectorStore } from "@/lib/vectorStore";
+import { getVectorStore, setVectorStore } from "@/lib/vectorStore";
 import pdf from "pdf-parse/lib/pdf-parse.js";
 
 export async function POST(request) {
@@ -30,15 +30,28 @@ export async function POST(request) {
       chunkSize: 500,
       chunkOverlap: 100,
     });
-    const docs = await splitter.createDocuments([extractedText]);
+
+    // Tag each chunk with metadata about which file it came from
+    const docs = await splitter.createDocuments(
+      [extractedText],
+      [{ source: file.name }], // metadata attached to every resulting chunk
+    );
 
     const embeddings = new GoogleGenerativeAIEmbeddings({
       apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
       model: "gemini-embedding-001",
     });
 
-    const vectorStore = await MemoryVectorStore.fromDocuments(docs, embeddings);
-    setVectorStore(vectorStore);
+    let vectorStore = getVectorStore();
+
+    if (!vectorStore) {
+      // First document ever indexed - create the store
+      vectorStore = await MemoryVectorStore.fromDocuments(docs, embeddings);
+      setVectorStore(vectorStore);
+    } else {
+      // Subsequent documents - ADD to the existing store instead of replacing it
+      await vectorStore.addDocuments(docs);
+    }
 
     return Response.json({
       success: true,
