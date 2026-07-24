@@ -6,22 +6,17 @@ export default function Home() {
   const [status, setStatus] = useState("");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
+  const [sources, setSources] = useState([]);
 
   async function handleIngest() {
     if (!file) {
       setStatus("Please select a PDF file first.");
       return;
     }
-
     setStatus("Uploading and indexing...");
-
     const formData = new FormData();
     formData.append("file", file);
-
-    const res = await fetch("/api/ingest", {
-      method: "POST",
-      body: formData, // no Content-Type header needed - browser sets it automatically for FormData
-    });
+    const res = await fetch("/api/ingest", { method: "POST", body: formData });
     const data = await res.json();
     setStatus(
       data.error
@@ -32,13 +27,19 @@ export default function Home() {
 
   async function handleAsk() {
     setAnswer("Thinking...");
+    setSources([]);
     const res = await fetch("/api/rag-chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question }),
     });
     const data = await res.json();
-    setAnswer(data.error ? `Error: ${data.error}` : data.answer);
+    if (data.error) {
+      setAnswer(`Error: ${data.error}`);
+    } else {
+      setAnswer(data.answer);
+      setSources(data.sources || []);
+    }
   }
 
   return (
@@ -48,7 +49,7 @@ export default function Home() {
       <input
         type="file"
         accept=".pdf"
-        onChange={(e) => setFile(e?.target?.files?.[0])}
+        onChange={(e) => setFile(e.target.files[0])}
         className="mb-2"
       />
       <button
@@ -67,11 +68,29 @@ export default function Home() {
       />
       <button
         onClick={handleAsk}
-        className="bg-green-600 text-white px-4 py-2 rounded-lg mb-2"
+        className="bg-green-600 text-white px-4 py-2 rounded-lg mb-4"
       >
         Ask
       </button>
-      <p className="text-gray-800 whitespace-pre-wrap">{answer}</p>
+
+      <p className="text-gray-800 whitespace-pre-wrap mb-4">{answer}</p>
+
+      {sources.length > 0 && (
+        <div className="border-t pt-4">
+          <h2 className="font-semibold mb-2 text-sm text-gray-500">
+            SOURCES USED
+          </h2>
+          {sources.map((source) => (
+            <div
+              key={source.id}
+              className="bg-gray-100 rounded-lg p-3 mb-2 text-sm text-gray-700"
+            >
+              <span className="font-medium">Source {source.id}:</span>{" "}
+              {source.text.slice(0, 200)}...
+            </div>
+          ))}
+        </div>
+      )}
     </main>
   );
 }

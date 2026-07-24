@@ -13,7 +13,6 @@ export async function POST(request) {
       );
     }
 
-    // Retrieval - same concept as Day 17's collection.query()
     const retriever = vectorStore.asRetriever({ k: 3 });
     const retrievedDocs = await retriever.invoke(question);
 
@@ -35,9 +34,13 @@ Answer:`;
 
     const response = await llm.invoke(prompt);
 
+    // NEW: return the actual source chunks alongside the answer
     return Response.json({
       answer: response.content,
-      sourcesUsed: retrievedDocs.length,
+      sources: retrievedDocs.map((doc, i) => ({
+        id: i + 1,
+        text: doc.pageContent,
+      })),
     });
   } catch (err) {
     console.error("RAG chat error:", err);
