@@ -87,24 +87,17 @@ export default function Home() {
           <h2 className="font-semibold mb-2 text-sm text-gray-500">
             SOURCES USED
           </h2>
-          {sources.length > 0 && (
-            <div className="border-t pt-4">
-              <h2 className="font-semibold mb-2 text-sm text-gray-500">
-                SOURCES USED
-              </h2>
-              {sources.map((source) => (
-                <div
-                  key={source.id}
-                  className="bg-gray-100 rounded-lg p-3 mb-2 text-sm text-gray-700"
-                >
-                  <span className="font-medium">
-                    Source {source.id} (from {source.fileName}):
-                  </span>{" "}
-                  {source.text.slice(0, 200)}...
-                </div>
-              ))}
+          {sources.map((source) => (
+            <div
+              key={source.id}
+              className="bg-gray-100 rounded-lg p-3 mb-2 text-sm text-gray-700"
+            >
+              <span className="font-medium">
+                Source {source.id} (from {source.fileName}):
+              </span>{" "}
+              {source.text.slice(0, 200)}...
             </div>
-          )}
+          ))}
 
           <button
             onClick={handleClear}

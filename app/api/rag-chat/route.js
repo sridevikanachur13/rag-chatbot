@@ -1,19 +1,11 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { getVectorStore } from "@/lib/vectorStore";
+import { getSupabaseVectorStore } from "@/lib/vectorStore";
 
 export async function POST(request) {
   try {
     const { question } = await request.json();
 
-    const vectorStore = getVectorStore();
-    if (!vectorStore) {
-      return Response.json(
-        { error: "No document indexed yet. Please index some text first." },
-        { status: 400 },
-      );
-    }
-
-    // Retrieval - same concept as Day 17's collection.query()
+    const vectorStore = getSupabaseVectorStore();
     const retriever = vectorStore.asRetriever({ k: 3 });
     const retrievedDocs = await retriever.invoke(question);
 
@@ -37,7 +29,11 @@ Answer:`;
 
     return Response.json({
       answer: response.content,
-      sourcesUsed: retrievedDocs.length,
+      sources: retrievedDocs.map((doc, i) => ({
+        id: i + 1,
+        text: doc.pageContent,
+        fileName: doc.metadata?.source || "Unknown",
+      })),
     });
   } catch (err) {
     console.error("RAG chat error:", err);
