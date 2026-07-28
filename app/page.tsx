@@ -1,13 +1,19 @@
 "use client";
 import { useState } from "react";
 
+interface Source {
+  id: number;
+  fileName: string;
+  text: string;
+}
+
 export default function Home() {
-  const [file, setFile] = useState(null);
-  const [status, setStatus] = useState("");
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
-  const [sources, setSources] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [status, setStatus] = useState<string>("");
+  const [question, setQuestion] = useState<string>("");
+  const [answer, setAnswer] = useState<string>("");
+  const [sources, setSources] = useState<Source[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   async function handleIngest() {
     if (!file) {
@@ -98,7 +104,7 @@ export default function Home() {
             <input
               type="file"
               accept=".pdf"
-              onChange={(e) => setFile(e?.target?.files?.[0])}
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               className="text-sm"
               style={{ color: "#16191F" }}
             />
@@ -169,8 +175,8 @@ export default function Home() {
               {loading ? "Reading…" : answer}
               {!loading &&
                 sources.map((s) => (
-                  <sup key={s?.id} style={{ color: "#B8935F", marginLeft: 2 }}>
-                    [{s?.id}]
+                  <sup key={s.id} style={{ color: "#B8935F", marginLeft: 2 }}>
+                    [{s.id}]
                   </sup>
                 ))}
             </p>
@@ -203,7 +209,7 @@ export default function Home() {
                   <div>
                     <span style={{ color: "#8A93A3" }}>{s.fileName} — </span>
                     <span style={{ color: "#C7CDD6" }}>
-                      {s?.text.slice(0, 180)}…
+                      {s.text.slice(0, 180)}…
                     </span>
                   </div>
                 </div>
